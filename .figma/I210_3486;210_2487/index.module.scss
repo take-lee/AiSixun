@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+}
+
+.frame7 {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  background: #0d99ff;
+  padding: 10px 17px 11px;
+  width: 98px;
+  height: 40px;
+
+  .text {
+    line-height: 19px;
+    letter-spacing: 0;
+    color: #ffffff;
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+  }
+}

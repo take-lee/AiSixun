@@ -1,0 +1,24 @@
+* {
+  box-sizing: border-box;
+}
+
+.send {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--text, #1d2233);
+  border-radius: 18px;
+  background: var(--bg_color, #f5f6f7);
+  padding: 10px;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  rotate: -90deg;
+
+  .spinnerIcon {
+    border-radius: 4px;
+    background: var(--text, #1d2233);
+    width: 14px;
+    height: 14px;
+    rotate: 90deg;
+  }
+}

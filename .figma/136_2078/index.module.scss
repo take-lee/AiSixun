@@ -1,0 +1,176 @@
+* {
+  box-sizing: border-box;
+}
+
+.supportTextContainer {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 228px;
+  height: 359px;
+  row-gap: 40px;
+
+  .supportHeading {
+    flex-shrink: 0;
+    line-height: 29px;
+    letter-spacing: 0;
+    color: var(--text, #1d2233);
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+  }
+
+  .frame120 {
+    display: inline-flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-start;
+    align-self: stretch;
+    row-gap: 20px;
+
+    .supportLinks {
+      flex-shrink: 0;
+      width: 187px;
+      line-height: 40px;
+      letter-spacing: 0;
+      color: #000000;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 16px;
+    }
+
+    .frame121 {
+      display: inline-flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      align-items: flex-start;
+      align-self: stretch;
+      row-gap: 10px;
+
+      .buttonBackground {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0.7;
+        border-radius: 8px;
+        background: #d3d7de;
+        width: 228px;
+        height: 40px;
+      }
+
+      .inputBox {
+        position: relative;
+        flex-shrink: 0;
+        width: 228px;
+        height: 40px;
+
+        .phoneNumber {
+          position: absolute;
+          top: 0;
+          left: 10px;
+          opacity: 0.6;
+          width: 80px;
+          height: 40px;
+          line-height: 40px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 16px;
+        }
+      }
+
+      .inputBox2 {
+        position: relative;
+        flex-shrink: 0;
+        width: 228px;
+        height: 40px;
+
+        .phoneNumber2 {
+          position: absolute;
+          top: 0;
+          left: 10px;
+          opacity: 0.6;
+          width: 64px;
+          height: 40px;
+          line-height: 40px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 16px;
+        }
+      }
+
+      .container {
+        position: relative;
+        flex-shrink: 0;
+        width: 228px;
+        height: 40px;
+
+        .dropdownBackground {
+          position: absolute;
+          top: 0;
+          left: 0;
+          opacity: 0.7;
+          border: 1px solid #f5f6f7;
+          border-radius: 8px;
+          background: #d3d7de;
+          width: 228px;
+          height: 40px;
+        }
+
+        .dropdownLabel {
+          position: absolute;
+          top: 0;
+          left: 10px;
+          opacity: 0.6;
+          width: 128px;
+          height: 40px;
+          line-height: 40px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 16px;
+        }
+
+        .arrowIcon {
+          position: absolute;
+          top: 12px;
+          left: 196px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      .submit {
+        position: relative;
+        flex-shrink: 0;
+        width: 100px;
+        height: 40px;
+
+        .buttonBackground2 {
+          position: absolute;
+          top: 0;
+          left: 0;
+          opacity: 0.6;
+          border-radius: 8px;
+          background: var(--text, #1d2233);
+          width: 100px;
+          height: 40px;
+        }
+
+        .buttonText {
+          position: absolute;
+          top: 11px;
+          left: 34px;
+          opacity: 0.7;
+          width: 32px;
+          height: 19px;
+          line-height: 19px;
+          letter-spacing: 0;
+          color: #ffffff;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}

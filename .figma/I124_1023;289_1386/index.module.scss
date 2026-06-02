@@ -1,0 +1,21 @@
+* {
+  box-sizing: border-box;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: flex-start;
+  column-gap: 10px;
+  border-radius: 8px;
+  background: var(--color, #0d99ff);
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+
+  .chatSparkleUndefined {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    overflow: hidden;
+  }
+}

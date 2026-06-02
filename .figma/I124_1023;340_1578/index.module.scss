@@ -1,0 +1,115 @@
+* {
+  box-sizing: border-box;
+}
+
+.messageRow {
+  display: inline-flex;
+  align-items: flex-start;
+  column-gap: 10px;
+  width: 344px;
+  height: 174px;
+
+  .iconContainer {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    column-gap: 10px;
+    border-radius: 8px;
+    background: var(--color, #0d99ff);
+    padding: 4px;
+
+    .chatSparkleUndefined {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      overflow: hidden;
+    }
+  }
+
+  .messageTextContainer {
+    display: inline-flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-start;
+    align-self: stretch;
+    justify-content: center;
+    border-radius: 8px;
+    background: #0d99ff29;
+    padding: 14px;
+    row-gap: 10px;
+
+    .messageText {
+      flex-shrink: 0;
+      line-height: 24px;
+      letter-spacing: 0;
+      color: var(--text, #1d2233);
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 16px;
+    }
+
+    .frame143 {
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: flex-start;
+      align-self: stretch;
+      column-gap: 10px;
+      margin-right: 22px;
+
+      .frame141 {
+        display: inline-flex;
+        flex-direction: column;
+        flex-shrink: 0;
+        align-items: flex-start;
+        border-radius: 8px;
+        background: #ffffff;
+        padding: 10px;
+        row-gap: 10px;
+
+        .text {
+          flex-shrink: 0;
+          opacity: 0.6;
+          line-height: 24px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 14px;
+        }
+
+        .a28643000 {
+          flex-shrink: 0;
+          line-height: 24px;
+          letter-spacing: 0;
+          color: var(--color, #0d99ff);
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 20px;
+          font-weight: 700;
+        }
+      }
+    }
+
+    .messageText4 {
+      flex-shrink: 0;
+      line-height: 24px;
+      letter-spacing: 0;
+      color: #000000;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+      font-size: 16px;
+
+      .messageText2 {
+        line-height: 24px;
+        letter-spacing: 0;
+        color: var(--text, #1d2233);
+        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+        font-size: 16px;
+      }
+
+      .messageText3 {
+        line-height: 24px;
+        letter-spacing: 0;
+        color: #03b438;
+        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+        font-size: 16px;
+      }
+    }
+  }
+}

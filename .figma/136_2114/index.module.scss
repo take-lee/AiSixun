@@ -1,0 +1,35 @@
+* {
+  box-sizing: border-box;
+}
+
+.group20 {
+  position: relative;
+  width: 228px;
+  height: 40px;
+
+  .rectangle58 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.6;
+    border: 1px solid #f5f6f7;
+    border-radius: 8px;
+    background: #ffffff;
+    width: 228px;
+    height: 40px;
+  }
+
+  .text {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    opacity: 0.6;
+    width: 64px;
+    height: 40px;
+    line-height: 40px;
+    letter-spacing: 0;
+    color: #000000;
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+  }
+}

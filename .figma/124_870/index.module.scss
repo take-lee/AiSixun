@@ -1,0 +1,116 @@
+* {
+  box-sizing: border-box;
+}
+
+.productList {
+  display: flex;
+  align-items: center;
+  column-gap: 30px;
+  width: 1440px;
+  height: 520px;
+
+  .mainContainer {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    align-items: flex-start;
+    border-radius: 16px;
+    box-shadow: 0px 4px 30px 0px #a0a3aa1a;
+    background: #d9d9d9;
+    padding-top: 320px;
+    row-gap: 10px;
+
+    .productDetails {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      align-items: flex-start;
+      align-self: stretch;
+      border-radius: 16px;
+      padding: 30px 46px 30px 30px;
+      row-gap: 18px;
+      background-image: linear-gradient(180deg, #f5f6f700 0%, #f5f6f7 80%);
+
+      .productInfo {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        align-self: stretch;
+        column-gap: 20px;
+
+        .productIcon {
+          display: flex;
+          flex-shrink: 0;
+          align-items: center;
+          justify-content: center;
+          column-gap: 10px;
+          border-radius: 8px;
+          background: var(--text, #1d2233);
+          padding: 10px;
+          width: 40px;
+          height: 40px;
+
+          .cartUndefinedGlyphUn {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            overflow: hidden;
+          }
+        }
+
+        .productTitle {
+          flex-shrink: 0;
+          width: 320px;
+          letter-spacing: 0;
+          color: #000000;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 32px;
+          font-weight: 700;
+        }
+      }
+
+      .productSubtitle {
+        flex-shrink: 0;
+        align-self: stretch;
+        letter-spacing: 0;
+        color: #000000;
+        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+        font-size: 20px;
+      }
+
+      .learnMoreContainer {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        column-gap: 4px;
+        width: 120px;
+        height: 40px;
+
+        .learnMoreText {
+          flex-shrink: 0;
+          line-height: 24px;
+          letter-spacing: 0;
+          color: #0d99ff;
+          font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+          font-size: 20px;
+        }
+
+        .autoWrapper {
+          position: relative;
+          flex-shrink: 0;
+          width: 20px;
+          height: 20px;
+
+          .arrowIcon {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 20px;
+            height: 20px;
+            rotate: -90deg;
+          }
+        }
+      }
+    }
+  }
+}

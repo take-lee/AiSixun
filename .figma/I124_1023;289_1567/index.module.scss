@@ -1,0 +1,40 @@
+* {
+  box-sizing: border-box;
+}
+
+.frame140 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  column-gap: 4px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 24px;
+  height: 24px;
+
+  .ellipse2 {
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--color, #0d99ff);
+    width: 4px;
+    height: 4px;
+  }
+
+  .ellipse3 {
+    flex-shrink: 0;
+    opacity: 0.7;
+    border-radius: 50%;
+    background: var(--color, #0d99ff);
+    width: 4px;
+    height: 4px;
+  }
+
+  .ellipse4 {
+    flex-shrink: 0;
+    opacity: 0.5;
+    border-radius: 50%;
+    background: var(--color, #0d99ff);
+    width: 4px;
+    height: 4px;
+  }
+}

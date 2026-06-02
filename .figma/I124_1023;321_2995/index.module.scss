@@ -1,0 +1,55 @@
+* {
+  box-sizing: border-box;
+}
+
+.soundWaveCircle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 5px 9px 4px;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+
+  .bar {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 10px;
+  }
+
+  .bar2 {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 14px;
+  }
+
+  .bar3 {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 18px;
+  }
+
+  .bar4 {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 12px;
+  }
+
+  .bar5 {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 8px;
+  }
+
+  .bar6 {
+    border-radius: 1px;
+    background: var(--color, #0d99ff);
+    width: 2px;
+    height: 4px;
+  }
+}

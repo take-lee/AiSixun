@@ -1,0 +1,13 @@
+* {
+  box-sizing: border-box;
+}
+
+.articleTitle {
+  width: 96px;
+  height: 32px;
+  line-height: 32px;
+  letter-spacing: 0;
+  color: var(--color, #0d99ff);
+  font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+  font-size: 24px;
+}

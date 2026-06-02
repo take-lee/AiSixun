@@ -1,0 +1,11 @@
+* {
+  box-sizing: border-box;
+}
+
+.articleBackground {
+  border-radius: 0px 0px 16px 16px;
+  background: #ffffffcc;
+  width: 480px;
+  height: 148px;
+  backdrop-filter: blur(10px);
+}

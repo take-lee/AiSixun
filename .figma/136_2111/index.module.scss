@@ -1,0 +1,42 @@
+* {
+  box-sizing: border-box;
+}
+
+.group19 {
+  position: relative;
+  width: 228px;
+  height: 40px;
+
+  .rectangle58 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0.7;
+    border-radius: 8px;
+    background: #d3d7de;
+    width: 228px;
+    height: 40px;
+  }
+
+  .text {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    opacity: 0.6;
+    width: 128px;
+    height: 40px;
+    line-height: 40px;
+    letter-spacing: 0;
+    color: #000000;
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+  }
+
+  .arrowIcon {
+    position: absolute;
+    top: 12px;
+    left: 196px;
+    width: 16px;
+    height: 17px;
+  }
+}

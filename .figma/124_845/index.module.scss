@@ -1,0 +1,29 @@
+* {
+  box-sizing: border-box;
+}
+
+.popupSymbolInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 16px;
+  background: #d9d9d9;
+  padding: 14px 30px;
+  width: 200px;
+  height: 68px;
+
+  .popupSymbolIcon {
+    border-radius: 8px;
+    background: #f5f6f7;
+    width: 40px;
+    height: 40px;
+  }
+
+  .popupSymbolPart1 {
+    line-height: 24px;
+    letter-spacing: 0;
+    color: #1d2233;
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 20px;
+  }
+}

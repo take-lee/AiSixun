@@ -1,0 +1,28 @@
+* {
+  box-sizing: border-box;
+}
+
+.paginationDots {
+  display: inline-flex;
+  align-items: center;
+  column-gap: 20px;
+  width: 210px;
+  height: 6px;
+
+  .paginationDot {
+    flex-shrink: 0;
+    border-radius: 3px;
+    background: var(--text, #1d2233);
+    width: 60px;
+    height: 6px;
+  }
+
+  .paginationDot2 {
+    flex-shrink: 0;
+    opacity: 0.4;
+    border-radius: 3px;
+    background: var(--text, #1d2233);
+    width: 30px;
+    height: 6px;
+  }
+}

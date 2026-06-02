@@ -1,0 +1,38 @@
+* {
+  box-sizing: border-box;
+}
+
+.contactInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 40px;
+  opacity: 0.9;
+  background: #000000;
+  padding: 4px 240px 4px 1158px;
+  width: 1920px;
+  height: 28px;
+  backdrop-filter: blur(5px);
+
+  .hotline {
+    flex-shrink: 0;
+    line-height: 17px;
+    letter-spacing: 0;
+    color: #ffffff;
+    font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif;
+    font-size: 14px;
+  }
+
+  .en {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    column-gap: 10px;
+    border: 1px solid #ffffff;
+    border-radius: 4px;
+    padding-right: 11px;
+    padding-left: 11px;
+    height: 20px;
+  }
+}
