@@ -781,7 +781,7 @@ const Footer = () => {
         alignSelf: 'stretch',
         justifyContent: 'center',
         background: '#f4f5f6',
-        padding: '30px 717px 30px 718px',
+        padding: '30px 0px',
         rowGap: '10px',
         boxSizing: 'border-box',
       }}>
