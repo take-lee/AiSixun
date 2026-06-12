@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   // 【新增】这一行非常重要！必须与你的仓库名称一致
-  base: '/AiSixun/',
+  base: './',
   plugins: [react()],
   resolve: {
     alias: {

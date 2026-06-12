@@ -1,736 +1,1028 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
-// 产品卡片数据
-const products = [
-  {
-    id: 1,
-    title: '大中型商超',
-    subtitle: '大型、中型连锁商超、综合商业零售',
-    icon: '.figma/image/mpw8ctxh-f3nt1vu.svg',
-    arrowIcon: '.figma/image/mpw8ctxh-n7uai6x.png',
-  },
-  {
-    id: 2,
-    title: '便利连锁',
-    subtitle: '连锁便利店、社区超市',
-    icon: '.figma/image/mpw8ctxh-ozacbkl.svg',
-    arrowIcon: '.figma/image/mpw8ctxh-n7uai6x.png',
-  },
-  {
-    id: 3,
-    title: '小微门店',
-    subtitle: '零食店、便利店、社区店、服装店',
-    icon: '.figma/image/mpw8ctxh-ozacbkl.svg',
-    arrowIcon: '.figma/image/mpw8ctxh-n7uai6x.png',
-  },
-];
+/* ===========================================================
+ * 行业解决方案 组件
+ * - 对应 Figma: "Main Container" (537_5563) 及其子组件
+ * - Title: "行业" (#1D2233) + "解决方案" (#0068eb)
+ * - Tab: 圆角胶囊背景 (Rectangle 28/Default 灰色底), 激活态蓝色实心
+ * - Container (默认): hero 图 + 毛玻璃信息条 (title + 业态标签)
+ * - Main Container (hover): 白底卡片 + 详情布局 + 蓝色描边 + 蓝色阴影
+ * - Category (按钮): 默认描边白, hover 蓝底白字
+ * - Additional Info Container: 每一个产品为超链接
+ * - Popup Overlay: 3 行马卡龙色标签云, 左右虚化, 第1/3行反向缓慢滚动
+ * - Frame 48: 小卡片 hover 时切换到 Frame 48 (带阴影)
+ * =========================================================== */
 
-// 滚动标签数据，包含标签名称和图标
-const scrollTags = [
-  { name: '零售连锁', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 240 },
-  { name: '生鲜超市', icon: '../.figma/image/mpuvzs9v-geqpz0h.svg', width: 220 },
-  { name: '休闲食品', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 220 },
-  { name: '母婴生活馆', icon: '../.figma/image/mpuvzs9v-geqpz0h.svg', width: 240 },
-  { name: '中型连锁商超', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 260 },
-  { name: '美业/服务', icon: '../.figma/image/mpuvzs9v-geqpz0h.svg', width: 220 },
-  { name: '烘焙熟食', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 220 },
-  { name: '美食广场', icon: '../.figma/image/mpuvzs9v-geqpz0h.svg', width: 220 },
-  { name: '母婴美妆', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 220 },
-  { name: '零食便利', icon: '../.figma/image/mpuvzs9v-geqpz0h.svg', width: 220 },
-  { name: '思迅商云PC', icon: '../.figma/image/mpuvzs9v-x1se9jr.svg', width: 240 },
-];
+// ---------------------- 字体 ----------------------
+const FONT_FAMILY =
+  '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif';
 
-// 解析值，得到数字和后缀
-const parseValue = (valueStr: string) => {
-  // 特殊处理 "万" 单位
-  const wanMatch = valueStr.match(/^(\d+)万(.*)$/);
-  if (wanMatch) {
-    // 如果是 "60万+" 这样的，直接显示时显示
-    return { num: parseInt(wanMatch[1]), suffix: `万${wanMatch[2]}`, display: valueStr };
-  }
-  // 匹配数字部分和后缀部分
-  const match = valueStr.match(/^(\d+)(.*)$/);
-  if (match) {
-    return { num: parseInt(match[1]), suffix: match[2], display: valueStr };
-  }
-  return { num: 0, suffix: valueStr, display: valueStr };
+// ---------------------- 马卡龙配色（与业态一致，小卡片底色） ----------------------
+// 每一个业态名 -> { 底色, 文字色, 边框色, 圆点色 }
+const MACARON_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  // --- 综合商超零售 ---
+  '大型综合超市': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '百货商城': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '乡镇综合卖场': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '母婴生活馆': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '中型连锁商超': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '美业/服务': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '生鲜超市': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '烘焙茶饮': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '美食广场': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '母婴美妆': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '大型连锁正餐': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '休闲食品': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '美食城档口': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '零食便利': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '火锅烧烤': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '蛋糕烘焙连锁': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  // --- 垂直专卖行业 ---
+  '烟酒行': { bg: '#E8E8F7', text: '#4A4A8C', border: '#C9C9E4', dot: '#7E7EB5' },
+  '服装店': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '数码通讯': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '家居建材': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '书店': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '鲜花礼品': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '宠物': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '汽车美容': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '加油站': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '文体办公': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '医药': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  // --- 餐饮全业态 ---
+  '中餐酒楼': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '快餐连锁': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '精品咖啡': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '茶饮连锁': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '面包烘焙': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '麻辣烫': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '特色正餐': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '宴会餐厅': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '大排档': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  // --- O2O 全域配套 ---
+  '线上商城': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '外卖配送': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '会员营销': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '全渠道零售': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '小程序商城': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '直播带货': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '美团外卖': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '饿了么': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '会员积分': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '私域商城': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '视频号直播': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '抖音小店': { bg: '#FFE8F2', text: '#B23A78', border: '#F2BED9', dot: '#D975AA' },
+  '多平台聚合': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '快手小店': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '分销小程序': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '优惠券': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  // --- 卡片内的业态 ---
+  '购物中心': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '大型仓储超市': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '多业态百货综合体': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '大型连锁商超': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '品牌连锁便利': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
+  '社区日用超市': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '便民小店': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '小型连锁': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '联营专柜结算': { bg: '#E4F7EF', text: '#2E7D5A', border: '#B6E3CE', dot: '#5FB593' },
+  '果蔬店': { bg: '#FFE9E4', text: '#C6573A', border: '#F5C8BC', dot: '#E08A6E' },
+  '农贸批发市场': { bg: '#E8F0FF', text: '#3D63C2', border: '#C8D7F5', dot: '#6A8DE0' },
+  '前店后场生鲜门店': { bg: '#FFF4D9', text: '#A8791F', border: '#F2DFA3', dot: '#D4AC52' },
+  '零食特卖店': { bg: '#F5E6FF', text: '#7A3DA1', border: '#E4C8F5', dot: '#B37ADB' },
 };
 
-// 数据组件数据
-const statsData = [
-  { value: '25年+', label: '行业深耕' },
-  { value: '300+', label: '城市覆盖' },
-  { value: '2000+', label: '合作伙伴' },
-  { value: '60万+', label: '服务门店数量' },
-].map(stat => ({
-  ...stat,
-  ...parseValue(stat.value),
-}));
+const DEFAULT_COLOR = { bg: '#F0F2F5', text: '#1D2233', border: '#D9D9D9', dot: '#9AA0AD' };
+const getTagColor = (name: string) => MACARON_COLORS[name] || DEFAULT_COLOR;
 
-const IndustrySolutions = () => {
-  const [visibleStats, setVisibleStats] = useState<number[]>([]);
-  const [counts, setCounts] = useState<number[]>(statsData.map(() => 0));
-  const [isRow1Hovered, setIsRow1Hovered] = useState(false);
-  const [isRow3Hovered, setIsRow3Hovered] = useState(false);
-  const [hoveredTagId, setHoveredTagId] = useState<string | null>(null);
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
-  const hasAnimated = useRef(false);
-  const animationRefs = useRef<number[]>([]);
+// ---------------------- 卡片 icon（SVG, 方便后期替换, 命名类似 mynauiCart） ----------------------
+/* Icon: 购物车 / 商超 (替换源： Figma mq4xejld-e0mh5an / mynauiCart) */
+const IconCartSVG = () => (
+  <svg viewBox="0 0 36 36" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    {/* 背景圆 */}
+    <rect width="36" height="36" rx="12" fill="#D9D9D9" />
+    {/* 购物车轮廓 */}
+    <path
+      d="M10 12h3.2l2.4 12h11.6l2.4-8H13.2"
+      stroke="#1D2233"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="16" cy="28" r="1.8" fill="#1D2233" />
+    <circle cx="25" cy="28" r="1.8" fill="#1D2233" />
+  </svg>
+);
 
-  // 数字计数动画函数
-  const animateCount = (index: number, target: number, duration: number = 2000) => {
-    const startTime = performance.now();
-    
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // 使用 easeOutQuad 缓动函数
-      const easeOut = progress * (2 - progress);
-      const currentCount = Math.floor(easeOut * target);
-      
-      setCounts(prev => {
-        const newCounts = [...prev];
-        newCounts[index] = currentCount;
-        return newCounts;
-      });
-      
-      if (progress < 1) {
-        animationRefs.current[index] = requestAnimationFrame(animate);
-      }
-    };
-    
-    animationRefs.current[index] = requestAnimationFrame(animate);
-  };
+/* Icon: 便利店 / 门店 (替换源： Figma mynauiStore) */
+const IconStoreSVG = () => (
+  <svg viewBox="0 0 36 36" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <rect width="36" height="36" rx="12" fill="#D9D9D9" />
+    <path
+      d="M9 15l2-5h14l2 5M9 15v13h18V15M9 15h18M13 28v-6M23 28v-6M18 28v-6"
+      stroke="#1D2233"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
-  // 数据组件动态加载效果
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasAnimated.current) {
-            hasAnimated.current = true;
-            // 逐个显示统计数据并开始计数
-            statsData.forEach((stat, index) => {
-              setTimeout(() => {
-                setVisibleStats((prev) => [...prev, index]);
-                // 开始计数动画
-                animateCount(index, stat.num, 2000);
-              }, index * 300);
-            });
-            observer.disconnect();
-          }
-        });
+/* Icon: 生鲜蔬菜 (替换源： Figma mynauiVeggie) */
+const IconVegSVG = () => (
+  <svg viewBox="0 0 36 36" width="36" height="36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <rect width="36" height="36" rx="12" fill="#D9D9D9" />
+    <path
+      d="M8 22c0-6 4-11 10-11 4 0 7 3 7 7s-3 7-7 7H13c-3 0-5-1-5-3z"
+      stroke="#1D2233"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <path d="M17 13c2-4 5-5 7-5" stroke="#1D2233" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+/* Icon: 小旗帜 (用于 popup 标签云, 替换源： popupSymbol icon) */
+const IconFlagSVG = ({ color = '#1D2233' }: { color?: string }) => (
+  <svg viewBox="0 0 40 40" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <path
+      d="M12 8h18l-2 6 2 6H12v12"
+      stroke={color}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// ---------------------- 数据 ----------------------
+interface SolutionCard {
+  title: string;
+  // 默认态：2 行, 每行 3 个 (5 个时也可)；实际上 Figma 每行 3 个 + 第 2 行 2~3 个
+  row1Tags: string[];
+  row2Tags: string[];
+  products: { name: string; href: string }[]; // 每个产品带链接
+  heroGradient: string; // hero 图渐变色，替代表位图
+  icon: React.ReactNode; // 替换源: mynauiCart
+}
+
+interface SolutionTab {
+  key: string;
+  label: string;
+  cards: SolutionCard[];
+  cloudRow1: string[];
+  cloudRow2: string[];
+  cloudRow3: string[];
+}
+
+const TABS: SolutionTab[] = [
+  {
+    key: 'retail',
+    label: '综合商超零售',
+    cards: [
+      {
+        title: '大型连锁商超 / 百货卖场',
+        row1Tags: ['大型综合超市', '购物中心', '大型仓储超市'],
+        row2Tags: ['多业态百货综合体', '大型连锁商超'],
+        products: [
+          { name: '思迅商旗', href: '#/product/sx-flagship' },
+          { name: '商汇', href: '#/product/sx-hui' },
+          { name: 'eShop 商业 5', href: '#/product/eshop-5' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #BFD8FF 0%, #FFD9B3 60%, #FFC7D6 100%)',
+        icon: <IconCartSVG />,
       },
-      { threshold: 0.5 }
-    );
+      {
+        title: '社区商超 / 连锁便利店',
+        row1Tags: ['品牌连锁便利', '社区日用超市', '便民小店'],
+        row2Tags: ['乡镇综合卖场', '小型连锁', '联营专柜结算'],
+        products: [
+          { name: '商云', href: '#/product/sx-cloud' },
+          { name: '思迅天店', href: '#/product/sx-tiandian' },
+          { name: 'eShop 小象', href: '#/product/eshop-xiaoxiang' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #C7E8FF 0%, #FFE0C2 55%, #FFD0D0 100%)',
+        icon: <IconStoreSVG />,
+      },
+      {
+        title: '生鲜农贸 / 零食门店',
+        row1Tags: ['生鲜超市', '果蔬店', '农贸批发市场'],
+        row2Tags: ['前店后场生鲜门店', '零食特卖店'],
+        products: [
+          { name: '思迅秤心管家', href: '#/product/sx-scale' },
+          { name: '天店·星锐', href: '#/product/tiandian-xingrui' },
+          { name: '商锐', href: '#/product/sx-rui' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #BFE6FF 0%, #FFD7BA 60%, #FFBFCF 100%)',
+        icon: <IconVegSVG />,
+      },
+    ],
+    cloudRow1: ['大型综合超市', '百货商城', '乡镇综合卖场', '母婴生活馆', '中型连锁商超', '美业/服务'],
+    cloudRow2: ['生鲜超市', '烘焙茶饮', '美食广场', '母婴美妆', '大型连锁正餐', '休闲食品'],
+    cloudRow3: ['美食城档口', '母婴生活馆', '零食便利', '火锅烧烤', '中型连锁商超', '蛋糕烘焙连锁'],
+  },
+  {
+    key: 'specialty',
+    label: '垂直专卖行业',
+    cards: [
+      {
+        title: '烟酒 / 医药专卖',
+        row1Tags: ['烟酒行', '医药', '便利店专卖'],
+        row2Tags: ['连锁药店', '品牌烟酒行', '社区药房'],
+        products: [
+          { name: '商云专卖版', href: '#/product/sx-cloud-spec' },
+          { name: '思迅天店', href: '#/product/sx-tiandian' },
+          { name: '医药专卖系统', href: '#/product/sx-med' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #C9D4FF 0%, #FFE0C2 60%, #E8D9FF 100%)',
+        icon: <IconCartSVG />,
+      },
+      {
+        title: '服饰 / 母婴 / 精品',
+        row1Tags: ['母婴店', '服装店', '饰品'],
+        row2Tags: ['鲜花礼品', '宠物', '家居建材'],
+        products: [
+          { name: '商锐专卖版', href: '#/product/sx-rui-spec' },
+          { name: '天店·星云', href: '#/product/tiandian-xingyun' },
+          { name: 'eshop 服装版', href: '#/product/eshop-cloth' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #FFCFE4 0%, #FFE7C9 60%, #D8E4FF 100%)',
+        icon: <IconStoreSVG />,
+      },
+      {
+        title: '数码 / 家居 / 文体',
+        row1Tags: ['数码通讯', '家居建材', '书店'],
+        row2Tags: ['文体办公', '数码配件', '家电连锁'],
+        products: [
+          { name: '商锐', href: '#/product/sx-rui' },
+          { name: '天店·星耀', href: '#/product/tiandian-xingyao' },
+          { name: 'eshop 数码版', href: '#/product/eshop-digital' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #B8D8FF 0%, #FFDCBA 60%, #FFD1E0 100%)',
+        icon: <IconVegSVG />,
+      },
+    ],
+    cloudRow1: ['烟酒行', '母婴店', '服装店', '饰品', '数码通讯', '家居建材'],
+    cloudRow2: ['书店', '鲜花礼品', '宠物', '汽车美容', '加油站', '文体办公'],
+    cloudRow3: ['医药', '数码配件', '家电连锁', '品牌烟酒', '连锁药店', '社区药房'],
+  },
+  {
+    key: 'food',
+    label: '餐饮全业态',
+    cards: [
+      {
+        title: '中餐 / 火锅 / 烧烤',
+        row1Tags: ['中餐酒楼', '火锅烧烤', '特色正餐'],
+        row2Tags: ['连锁正餐', '宴会餐厅', '大排档'],
+        products: [
+          { name: '美食家 3', href: '#/product/meishijia-3' },
+          { name: '思迅食通天', href: '#/product/sx-shitongtian' },
+          { name: '天店·餐饮版', href: '#/product/tiandian-food' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #FFD6B8 0%, #FFE0B0 60%, #FFC8C8 100%)',
+        icon: <IconCartSVG />,
+      },
+      {
+        title: '烘焙 / 咖啡 / 甜品',
+        row1Tags: ['烘焙茶饮', '咖啡甜品', '蛋糕烘焙连锁'],
+        row2Tags: ['精品咖啡', '茶饮连锁', '面包烘焙'],
+        products: [
+          { name: '烘焙之星', href: '#/product/bake-star' },
+          { name: '思迅咖啡通', href: '#/product/sx-coffee' },
+          { name: '天店·星锐', href: '#/product/tiandian-xingrui' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #FFE4C4 0%, #FFE9B0 60%, #FFC9D6 100%)',
+        icon: <IconStoreSVG />,
+      },
+      {
+        title: '快餐 / 美食广场 / 小吃',
+        row1Tags: ['快餐连锁', '美食广场', '小吃'],
+        row2Tags: ['休闲食品', '美食城档口', '麻辣烫'],
+        products: [
+          { name: '美食家 3', href: '#/product/meishijia-3' },
+          { name: '食通天 8', href: '#/product/shitongtian-8' },
+          { name: '天店·小吃版', href: '#/product/tiandian-snack' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #FFDDBC 0%, #FFD2E0 60%, #D8E4FF 100%)',
+        icon: <IconVegSVG />,
+      },
+    ],
+    cloudRow1: ['中餐酒楼', '快餐连锁', '火锅烧烤', '烘焙茶饮', '咖啡甜品', '美食广场'],
+    cloudRow2: ['小吃', '休闲食品', '美食城档口', '蛋糕烘焙连锁', '精品咖啡', '茶饮连锁'],
+    cloudRow3: ['面包烘焙', '麻辣烫', '特色正餐', '连锁正餐', '宴会餐厅', '大排档'],
+  },
+  {
+    key: 'o2o',
+    label: 'O2O全域配套',
+    cards: [
+      {
+        title: '线上商城 / 小程序',
+        row1Tags: ['线上商城', '小程序商城', '私域商城'],
+        row2Tags: ['H5 商城', '会员小程序', '分销小程序'],
+        products: [
+          { name: '思迅微商店', href: '#/product/sx-weishop' },
+          { name: '小程序商城', href: '#/product/mini-shop' },
+          { name: 'O2O 商城', href: '#/product/o2o-shop' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #B8D8FF 0%, #C8E8FF 60%, #D8E4FF 100%)',
+        icon: <IconCartSVG />,
+      },
+      {
+        title: '外卖配送 / 会员营销',
+        row1Tags: ['外卖配送', '会员营销', '美团外卖'],
+        row2Tags: ['饿了么', '会员积分', '优惠券'],
+        products: [
+          { name: '外卖管家', href: '#/product/waimai-guanjia' },
+          { name: '会员营销系统', href: '#/product/member-marketing' },
+          { name: '思迅商圈', href: '#/product/sx-shangquan' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #FFD1D1 0%, #FFE0B0 60%, #D8E4FF 100%)',
+        icon: <IconStoreSVG />,
+      },
+      {
+        title: '直播带货 / 全渠道',
+        row1Tags: ['全渠道零售', '直播带货', '视频号直播'],
+        row2Tags: ['抖音小店', '快手小店', '多平台聚合'],
+        products: [
+          { name: '全渠道零售', href: '#/product/omnichannel' },
+          { name: '直播通', href: '#/product/live-pass' },
+          { name: 'O2O 平台版', href: '#/product/o2o-platform' },
+        ],
+        heroGradient: 'linear-gradient(135deg, #D8E4FF 0%, #FFCFE4 60%, #FFE4C4 100%)',
+        icon: <IconVegSVG />,
+      },
+    ],
+    cloudRow1: ['线上商城', '外卖配送', '会员营销', '全渠道零售', '小程序商城', '直播带货'],
+    cloudRow2: ['美团外卖', '饿了么', '会员积分', '私域商城', '视频号直播', '抖音小店'],
+    cloudRow3: ['H5 商城', '多平台聚合', '快手小店', '分销小程序', '会员小程序', '优惠券'],
+  },
+];
 
-    if (statsRef.current) {
-      observer.observe(statsRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-      // 清理所有动画
-      animationRefs.current.forEach(id => {
-        if (id) cancelAnimationFrame(id);
-      });
-    };
-  }, []);
-
-  // 计算每个标签的宽度，根据文字长度
-  const getTagWidth = (name: string) => {
-    const baseWidth = 200;
-    const charWidth = 12;
-    return Math.max(baseWidth, baseWidth + (name.length - 4) * charWidth);
-  };
-
-
-
+// ---------------------- 子组件：业态小标签（带业态链接，可跳转到对应业态详情页，已按 Figma 需求移除小方块指示器） ----------------------
+// 替换源：Figma Tag Item / Tag Group - Rectangle 28/Default
+// 小方块指示器逻辑保留在 MACARON_COLORS 中，便于未来按需开启（在 children 中再加 <span> 色块即可）
+const CategoryTag: React.FC<{ name: string; href?: string }> = ({ name, href }) => {
   return (
-    <section style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      background: '#ffffff',
-      padding: '140px 240px 120px',
-      width: '100%',
-      maxWidth: '1920px',
-      margin: '0 auto',
-      rowGap: '120px',
-      boxSizing: 'border-box',
-    }}>
-      {/* 容器 */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
+    <a
+      // link：点击后跳转到对应业态详情页（后期替换为真实路由，例如 /category/{slug}）
+      href={href ?? `#/category/${encodeURIComponent(name)}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px solid #D9D9D9',
+        borderRadius: '8px',
+        padding: '9px 16px',
+        background: '#FFFFFF',
+        whiteSpace: 'nowrap',
+        textDecoration: 'none',
+        cursor: 'pointer',
         flexShrink: 0,
-        alignItems: 'flex-start',
-        alignSelf: 'stretch',
-        rowGap: '80px',
-      }}>
-        {/* 标题 */}
-        <h2 style={{
-          flexShrink: 0,
-          width: '1440px',
-          height: '67px',
-          textAlign: 'center',
-          letterSpacing: 0,
-          color: '#000000',
-          fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-          fontSize: '56px',
-          fontWeight: 700,
-          margin: 0,
-        }}>
-          <span style={{
-            letterSpacing: 0,
-            color: 'var(--text, #1d2233)',
-            fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-            fontSize: '56px',
-            fontWeight: 700,
-          }}>
-            探索行业
-          </span>
-          <span style={{
-            letterSpacing: 0,
-            color: '#0068eb',
-            fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-            fontSize: '56px',
-            fontWeight: 700,
-          }}>
-            解决方案
-          </span>
-        </h2>
-
-        {/* 滚动标签区域 - Popup Overlay */}
-        <div style={{
-          position: 'relative',
-          flexShrink: 0,
-          width: '100%',
-          maxWidth: '1440px',
-          margin: '0 auto',
-          height: '298px',
-          overflow: 'hidden',
-        }}>
-          {/* 左渐变遮罩 */}
-          <div style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '150px',
-            height: '100%',
-            background: 'linear-gradient(to right, white 0%, transparent 100%)',
-            zIndex: 2,
-            pointerEvents: 'none',
-          }} />
-          
-          {/* 右渐变遮罩 */}
-          <div style={{
-            position: 'absolute',
-            right: 0,
-            top: 0,
-            width: '150px',
-            height: '100%',
-            background: 'linear-gradient(to left, white 0%, transparent 100%)',
-            zIndex: 2,
-            pointerEvents: 'none',
-          }} />
-
-          {/* 滚动内容 */}
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            height: '100%',
-            rowGap: '24px',
-          }}>
-            {/* 第一行 - 向左滚动 */}
-            <div
-              onMouseEnter={() => setIsRow1Hovered(true)}
-              onMouseLeave={() => {
-                setIsRow1Hovered(false);
-                setHoveredTagId(null);
-              }}
-              style={{
-                display: 'flex',
-                columnGap: '24px',
-                animation: isRow1Hovered ? 'none' : 'scrollLeft 30s linear infinite',
-                width: 'max-content',
-              }}
-            >
-              {[...scrollTags, ...scrollTags].map((tag, index) => {
-                const tagId = `row1-${index}`;
-                const isHovered = hoveredTagId === tagId;
-                return (
-                  <div
-                    key={tagId}
-                    onMouseEnter={() => setHoveredTagId(tagId)}
-                    onMouseLeave={() => setHoveredTagId(null)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '16px',
-                      background: isHovered ? '#f5f6f7' : '#d9d9d9',
-                      border: isHovered ? '1px solid #0d99ff' : 'none',
-                      padding: '14px 30px',
-                      width: getTagWidth(tag.name),
-                      minWidth: getTagWidth(tag.name),
-                      height: '68px',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    <div style={{
-                      borderRadius: '8px',
-                      background: '#f5f6f7',
-                      width: '40px',
-                      height: '40px',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <img
-                        src={tag.icon}
-                        alt=""
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          flexShrink: 0,
-                        }}
-                      />
-                    </div>
-                    <span style={{
-                      lineHeight: '24px',
-                      letterSpacing: 0,
-                      color: '#1d2233',
-                      fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                      fontSize: '20px',
-                    }}>
-                      {tag.name}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* 第二行 - 中间固定，两边渐变 */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              columnGap: '24px',
-              position: 'relative',
-            }}>
-              {/* 左边渐变 */}
-              <div style={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: '250px',
-                background: 'linear-gradient(to right, white 0%, transparent 100%)',
-                zIndex: 1,
-              }} />
-              
-              {/* 右边渐变 */}
-              <div style={{
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: '250px',
-                background: 'linear-gradient(to left, white 0%, transparent 100%)',
-                zIndex: 1,
-              }} />
-
-              {/* 中间固定标签 */}
-              {scrollTags.slice(0, 7).map((tag, index) => {
-                const tagId = `row2-${index}`;
-                const isHovered = hoveredTagId === tagId;
-                return (
-                  <div
-                    key={tagId}
-                    onMouseEnter={() => setHoveredTagId(tagId)}
-                    onMouseLeave={() => setHoveredTagId(null)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '16px',
-                      background: isHovered ? '#f5f6f7' : '#d9d9d9',
-                      border: isHovered ? '1px solid #0d99ff' : 'none',
-                      padding: '14px 30px',
-                      width: getTagWidth(tag.name),
-                      minWidth: getTagWidth(tag.name),
-                      height: '68px',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    <div style={{
-                      borderRadius: '8px',
-                      background: '#f5f6f7',
-                      width: '40px',
-                      height: '40px',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <img
-                        src={tag.icon}
-                        alt=""
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          flexShrink: 0,
-                        }}
-                      />
-                    </div>
-                    <span style={{
-                      lineHeight: '24px',
-                      letterSpacing: 0,
-                      color: '#1d2233',
-                      fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                      fontSize: '20px',
-                    }}>
-                      {tag.name}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* 第三行 - 向左滚动 */}
-            <div
-              onMouseEnter={() => setIsRow3Hovered(true)}
-              onMouseLeave={() => {
-                setIsRow3Hovered(false);
-                setHoveredTagId(null);
-              }}
-              style={{
-                display: 'flex',
-                columnGap: '24px',
-                animation: isRow3Hovered ? 'none' : 'scrollLeft 35s linear infinite',
-                width: 'max-content',
-              }}
-            >
-              {[...scrollTags.slice(3), ...scrollTags.slice(3)].map((tag, index) => {
-                const tagId = `row3-${index}`;
-                const isHovered = hoveredTagId === tagId;
-                return (
-                  <div
-                    key={tagId}
-                    onMouseEnter={() => setHoveredTagId(tagId)}
-                    onMouseLeave={() => setHoveredTagId(null)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '16px',
-                      background: isHovered ? '#f5f6f7' : '#d9d9d9',
-                      border: isHovered ? '1px solid #0d99ff' : 'none',
-                      padding: '14px 30px',
-                      width: getTagWidth(tag.name),
-                      minWidth: getTagWidth(tag.name),
-                      height: '68px',
-                      whiteSpace: 'nowrap',
-                      transition: 'all 0.3s ease',
-                    }}
-                  >
-                    <div style={{
-                      borderRadius: '8px',
-                      background: '#f5f6f7',
-                      width: '40px',
-                      height: '40px',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                      <img
-                        src={tag.icon}
-                        alt=""
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          flexShrink: 0,
-                        }}
-                      />
-                    </div>
-                    <span style={{
-                      lineHeight: '24px',
-                      letterSpacing: 0,
-                      color: '#1d2233',
-                      fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                      fontSize: '20px',
-                    }}>
-                      {tag.name}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* 产品卡片列表 */}
-        <div style={{
-          display: 'flex',
-          flexShrink: 0,
-          alignItems: 'center',
-          width: '1440px',
-          height: '520px',
-          columnGap: '30px',
-        }}>
-          {products.map((product) => {
-            const isHovered = hoveredCard === product.id;
-            return (
-              <div
-                key={product.id}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flexShrink: 0,
-                  alignItems: isHovered ? 'center' : 'flex-start',
-                  justifyContent: isHovered ? 'center' : 'flex-start',
-                  borderRadius: '16px',
-                  boxShadow: '0px 4px 30px 0px #a0a3aa1a',
-                  background: '#d9d9d9',
-                  width: '460px',
-                  height: '520px',
-                  rowGap: '10px',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  paddingTop: isHovered ? '0' : '320px',
-                }}
-                onMouseEnter={() => setHoveredCard(product.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                {/* 白色渐变遮罩 - 仅默认状态显示 */}
-                {!isHovered && (
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(180deg, #f5f6f700 0%, #f5f6f7 80%)',
-                    borderRadius: '16px',
-                    zIndex: 1,
-                    pointerEvents: 'none',
-                  }} />
-                )}
-
-                {/* 卡片内容 */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  flexShrink: 0,
-                  alignItems: isHovered ? 'center' : 'flex-start',
-                  alignSelf: 'stretch',
-                  justifyContent: isHovered ? 'center' : 'flex-start',
-                  border: isHovered ? '1px solid var(--color, #0d99ff)' : 'none',
-                  borderRadius: '16px',
-                  background: isHovered ? '#ffffffb2' : 'linear-gradient(180deg, #f5f6f700 0%, #f5f6f7 80%)',
-                  padding: isHovered ? '29px 37px' : '30px 46px 30px 30px',
-                  height: isHovered ? '520px' : 'auto',
-                  rowGap: '18px',
-                  backdropFilter: isHovered ? 'blur(15px)' : 'none',
-                  zIndex: 2,
-                  position: 'relative',
-                }}>
-                  {/* 图标和标题容器 */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: isHovered ? 'column' : 'row',
-                    flexShrink: 0,
-                    alignItems: isHovered ? 'center' : 'flex-start',
-                    alignSelf: 'stretch',
-                    justifyContent: isHovered ? 'center' : 'flex-start',
-                    rowGap: isHovered ? '20px' : '0',
-                    columnGap: isHovered ? '0' : '20px',
-                  }}>
-                    {/* 产品图标 */}
-                    <div style={{
-                      display: 'flex',
-                      flexShrink: 0,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      columnGap: '10px',
-                      borderRadius: '8px',
-                      background: 'var(--text, #1d2233)',
-                      padding: '10px',
-                      width: '40px',
-                      height: '40px',
-                    }}>
-                      <img
-                        src={product.icon}
-                        alt=""
-                        style={{
-                          flexShrink: 0,
-                          width: '32px',
-                          height: '32px',
-                          overflow: 'hidden',
-                        }}
-                      />
-                    </div>
-
-                    {/* 产品标题 */}
-                    <p style={{
-                      flexShrink: 0,
-                      width: '320px',
-                      textAlign: isHovered ? 'center' : 'left',
-                      letterSpacing: 0,
-                      color: '#000000',
-                      fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                      fontSize: '32px',
-                      fontWeight: 700,
-                      margin: 0,
-                    }}>
-                      {product.title}
-                    </p>
-                  </div>
-
-                  {/* 产品副标题 */}
-                  <p style={{
-                    flexShrink: 0,
-                    alignSelf: 'stretch',
-                    textAlign: isHovered ? 'center' : 'left',
-                    letterSpacing: 0,
-                    color: '#000000',
-                    fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                    fontSize: '20px',
-                    margin: 0,
-                  }}>
-                    {product.subtitle}
-                  </p>
-
-                  {/* 了解更多容器 */}
-                  <div style={{
-                    display: 'flex',
-                    flexShrink: 0,
-                    alignItems: 'center',
-                    justifyContent: isHovered ? 'center' : 'flex-start',
-                    columnGap: '4px',
-                    border: isHovered ? '1px solid var(--color, #0d99ff)' : 'none',
-                    borderRadius: '8px',
-                    background: isHovered ? '#ffffff' : 'transparent',
-                    width: '120px',
-                    height: '40px',
-                  }}>
-                    <p style={{
-                      flexShrink: 0,
-                      lineHeight: '24px',
-                      letterSpacing: 0,
-                      color: '#0d99ff',
-                      fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-                      fontSize: '20px',
-                      margin: 0,
-                    }}>
-                      了解更多
-                    </p>
-                    <div style={{
-                      position: 'relative',
-                      flexShrink: 0,
-                      width: '20px',
-                      height: '20px',
-                    }}>
-                      <img
-                        src={product.arrowIcon}
-                        alt=""
-                        style={{
-                          position: 'absolute',
-                          top: '1px',
-                          left: '1px',
-                          width: '20px',
-                          height: '20px',
-                          rotate: '-90deg',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 数据组件 - date */}
-      <div
-        ref={statsRef}
+      }}
+    >
+      <p
         style={{
-          display: 'flex',
-          flexShrink: 0,
-          alignItems: 'center',
-          alignSelf: 'stretch',
-          overflow: 'hidden',
-          justifyContent: 'center',
+          margin: 0,
+          lineHeight: '23px',
+          letterSpacing: 0,
+          color: '#1D2233',
+          fontFamily: FONT_FAMILY,
+          fontSize: '16px',
+          whiteSpace: 'nowrap',
         }}
       >
-        {statsData.map((stat, index) => (
-          <div
-            key={index}
+        {name}
+      </p>
+    </a>
+  );
+};
+
+// ---------------------- 子组件：Category 按钮（了解详情 / 免费试用） ----------------------
+// 默认：白底色 + 灰色描边；hover：蓝色底 #0D99FF + 白色字
+const CategoryButton: React.FC<{
+  label: string;
+  type: 'outline' | 'primary-outline'; // 了解详情 (outline) / 免费试用 (primary-outline)
+  href?: string;
+}> = ({ label, type, href = '#' }) => {
+  const [hovered, setHovered] = useState(false);
+  const isPrimary = type === 'primary-outline';
+  const style: React.CSSProperties = hovered
+    ? {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        columnGap: '10px',
+        border: '1px solid #0D99FF',
+        borderRadius: '8px',
+        background: '#0D99FF',
+        padding: '13px 29px',
+        height: '56px',
+        cursor: 'pointer',
+        color: '#FFFFFF',
+        fontFamily: FONT_FAMILY,
+        fontSize: '20px',
+        lineHeight: '29px',
+        transition: 'all 200ms ease',
+        textDecoration: 'none',
+      }
+    : {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        columnGap: '10px',
+        border: isPrimary ? '1px solid #0D99FF' : '1px solid #D9D9D9',
+        borderRadius: '8px',
+        background: '#FFFFFF',
+        padding: '13px 29px',
+        height: '56px',
+        cursor: 'pointer',
+        color: isPrimary ? '#0D99FF' : '#1D2233',
+        fontFamily: FONT_FAMILY,
+        fontSize: '20px',
+        lineHeight: '29px',
+        transition: 'all 200ms ease',
+        textDecoration: 'none',
+      };
+
+  return (
+    <a href={href} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={style}>
+      {label}
+    </a>
+  );
+};
+
+// ---------------------- 主组件 ----------------------
+const IndustrySolutions: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
+  const tab = TABS[activeTab];
+
+  return (
+    <section
+      style={{
+        width: '100%',
+        background: 'linear-gradient(180deg, #D9E8FFB2 0%, #D9E8FF00 100%)',
+        padding: '120px 0 100px',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          width: '1440px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          rowGap: '60px',
+        }}
+      >
+        {/* ============== Title: 行业(黑) + 解决方案(蓝 #0068eb) ============== */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <h2
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              flexShrink: 0,
-              alignItems: 'center',
-              padding: '40px 110px',
-              rowGap: '30px',
-              width: index === 2 ? '360px' : 'auto',
-              opacity: visibleStats.includes(index) ? 1 : 0,
-              transform: visibleStats.includes(index) ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'all 0.5s ease',
+              margin: 0,
+              lineHeight: '67px',
+              letterSpacing: 0,
+              color: '#000000',
+              fontFamily: FONT_FAMILY,
+              fontSize: '56px',
+              fontWeight: 700,
             }}
           >
-            <p style={{
-              flexShrink: 0,
-              lineHeight: '58px',
-              letterSpacing: 0,
-              color: '#000000',
-              fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-              fontSize: '48px',
-              fontWeight: 700,
-              margin: 0,
-              textAlign: 'center',
-            }}>
-              {visibleStats.includes(index) ? `${counts[index]}${stat.suffix}` : stat.value}
-            </p>
-            <p style={{
-              flexShrink: 0,
+            <span style={{ color: '#1D2233' }}>行业</span>
+            <span style={{ color: '#0068eb' }}>解决方案</span>
+          </h2>
+        </div>
+
+        {/* ============== Tab 组件（Rectangle 28/Default 灰色底 + 激活态蓝色胶囊） ============== */}
+        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderRadius: '36px',
+              background: '#D6E6F0',
+              minWidth: '761px',
+              height: '56px',
+              padding: '0px',
+              boxSizing: 'border-box',
+            }}
+          >
+            {TABS.map((t, idx) => {
+              const isActive = idx === activeTab;
+              return (
+                <div
+                  key={t.key}
+                  onClick={() => setActiveTab(idx)}
+                  onMouseEnter={() => setActiveTab(idx)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    columnGap: '10px',
+                    borderRadius: '38px',
+                    background: isActive ? '#0D99FF' : 'transparent',
+                    padding: isActive ? '16px 30px' : '16px 30px',
+                    cursor: 'pointer',
+                    transition: 'background 200ms ease, color 200ms ease',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span
+                    style={{
+                      lineHeight: '24px',
+                      letterSpacing: 0,
+                      color: isActive ? '#FFFFFF' : '#1D2233',
+                      fontFamily: FONT_FAMILY,
+                      fontSize: '20px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ============== 3 张卡片 (Container → Main Container hover 切换) ============== */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+            columnGap: '30px',
+          }}
+        >
+          {tab.cards.map((card, idx) => (
+            <SolutionCardView key={`${tab.key}-card-${idx}`} card={card} />
+          ))}
+        </div>
+
+        {/* ============== Popup Overlay：3 行标签云（左右虚化 + 滚动） ============== */}
+        <PopupOverlay tab={tab} />
+      </div>
+    </section>
+  );
+};
+
+// ---------------------- 卡片：默认 Container 与 hover Main Container 切换 ----------------------
+const SolutionCardView: React.FC<{ card: SolutionCard }> = ({ card }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'relative',
+        width: '460px',
+        height: '447px',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        transition: 'box-shadow 300ms ease',
+        boxShadow: hovered ? '0px 8px 30px 0px #0068eb1a' : '0px 4px 20px 0px rgba(160,163,170,0.15)',
+        background: '#D9D9D9',
+        flexShrink: 0,
+      }}
+    >
+      {/* ---------- 默认态：Container（hero + tagContainer 信息条，宽度与背景一致） ---------- */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-end',
+          borderRadius: '16px',
+          background: card.heroGradient,
+          paddingTop: '160px',
+          rowGap: '10px',
+          opacity: hovered ? 0 : 1,
+          transition: 'opacity 300ms ease',
+        }}
+      >
+        {/* tagContainer：圆角 16px / 透明磨砂玻璃 / 宽度与卡片背景一致，不是全高覆盖 */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            alignItems: 'flex-start',
+            alignSelf: 'stretch',
+            justifyContent: 'center',
+            borderRadius: '16px',
+            background: 'rgba(255,255,255,0.7)',
+            padding: '30px',
+            rowGap: '16px',
+            backdropFilter: 'blur(5px)',
+            margin: '0',
+          }}
+        >
+          {/* 顶部：icon + title */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              columnGap: '10px',
               alignSelf: 'stretch',
-              textAlign: 'center',
-              letterSpacing: 0,
-              color: '#000000',
-              fontFamily: '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", SimHei, Arial, Helvetica, sans-serif',
-              fontSize: '20px',
-              margin: 0,
-            }}>
-              {stat.label}
+            }}
+          >
+            {/* Icon Container (SVG, 替换源: mynauiCart) */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                columnGap: '10px',
+                borderRadius: '12px',
+                background: '#D9D9D9',
+                padding: '6px',
+                flexShrink: 0,
+              }}
+            >
+              {card.icon}
+            </div>
+            <p
+              style={{
+                margin: 0,
+                flexShrink: 0,
+                lineHeight: '41px',
+                letterSpacing: 0,
+                color: '#1D2233',
+                fontFamily: FONT_FAMILY,
+                fontSize: '28px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {card.title}
             </p>
           </div>
-        ))}
+
+          {/* 标签组 1 */}
+          <div
+            style={{
+              display: 'flex',
+              flexShrink: 0,
+              alignItems: 'center',
+              columnGap: '16px',
+              width: '400px',
+            }}
+          >
+            {card.row1Tags.map((t) => (
+              <CategoryTag key={`r1-${t}`} name={t} />
+            ))}
+          </div>
+
+          {/* 标签组 2 */}
+          <div
+            style={{
+              display: 'flex',
+              flexShrink: 0,
+              alignItems: 'center',
+              columnGap: '16px',
+              width: '400px',
+            }}
+          >
+            {card.row2Tags.map((t) => (
+              <CategoryTag key={`r2-${t}`} name={t} />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* CSS 动画 */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes scrollLeft {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-      `}} />
-    </section>
+      {/* ---------- hover 态：Main Container（整卡渐变背景 + 底部磨砂玻璃信息条，宽度与背景一致，高度不完全覆盖） ---------- */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          justifyContent: 'flex-end',
+          borderRadius: '16px',
+          background: card.heroGradient,
+          opacity: hovered ? 1 : 0,
+          pointerEvents: hovered ? 'auto' : 'none',
+          transition: 'opacity 300ms ease',
+        }}
+      >
+        {/* 信息条：透明磨砂玻璃，宽度与卡片背景对齐，圆角 16，不覆盖全高 */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            alignSelf: 'stretch',
+            borderRadius: '16px',
+            background: 'rgba(255,255,255,0.7)',
+            padding: '30px',
+            rowGap: '20px',
+            backdropFilter: 'blur(5px)',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* 顶部：icon + title */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              columnGap: '10px',
+              alignSelf: 'stretch',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                columnGap: '10px',
+                borderRadius: '12px',
+                background: '#D9D9D9',
+                padding: '6px',
+                flexShrink: 0,
+              }}
+            >
+              {card.icon}
+            </div>
+            <p
+              style={{
+                margin: 0,
+                flexShrink: 0,
+                lineHeight: '41px',
+                letterSpacing: 0,
+                color: '#1D2233',
+                fontFamily: FONT_FAMILY,
+                fontSize: '28px',
+                fontWeight: 700,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {card.title}
+            </p>
+          </div>
+
+          {/* 标签组 1 */}
+          <div
+            style={{
+              display: 'flex',
+              flexShrink: 0,
+              alignItems: 'center',
+              columnGap: '16px',
+              width: '400px',
+            }}
+          >
+            {card.row1Tags.map((t) => (
+              <CategoryTag key={`hr1-${t}`} name={t} />
+            ))}
+          </div>
+
+          {/* 标签组 2 */}
+          <div
+            style={{
+              display: 'flex',
+              flexShrink: 0,
+              alignItems: 'center',
+              columnGap: '16px',
+              width: '400px',
+            }}
+          >
+            {card.row2Tags.map((t) => (
+              <CategoryTag key={`hr2-${t}`} name={t} />
+            ))}
+          </div>
+
+          {/* 分隔线 */}
+          <div
+            style={{
+              flexShrink: 0,
+              background: '#D9D9D9',
+              width: '400px',
+              height: '1px',
+            }}
+          />
+
+          {/* Additional Info Container：适配产品（每一个都带链接） + 双按钮 */}
+          <div
+            style={{
+              display: 'inline-flex',
+              flexDirection: 'column',
+              flexShrink: 0,
+              alignItems: 'flex-start',
+              alignSelf: 'stretch',
+              rowGap: '30px',
+            }}
+          >
+            <div
+              style={{
+                display: 'inline-flex',
+                flexShrink: 0,
+                alignItems: 'flex-start',
+                alignSelf: 'stretch',
+                columnGap: '10px',
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  flexShrink: 0,
+                  lineHeight: '29px',
+                  letterSpacing: 0,
+                  color: '#1D2233',
+                  fontFamily: FONT_FAMILY,
+                  fontSize: '20px',
+                }}
+              >
+                适配产品：
+              </p>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  flexShrink: 0,
+                  alignItems: 'center',
+                  columnGap: '20px',
+                }}
+              >
+                {card.products.map((p) => (
+                  <a
+                    key={p.name}
+                    href={p.href}
+                    style={{
+                      lineHeight: '29px',
+                      letterSpacing: 0,
+                      color: '#0D99FF',
+                      fontFamily: FONT_FAMILY,
+                      fontSize: '20px',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {p.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* 双按钮 (Category)：默认描边, hover 蓝底白字 */}
+            <div
+              style={{
+                display: 'inline-flex',
+                flexShrink: 0,
+                alignItems: 'center',
+                alignSelf: 'stretch',
+                columnGap: '30px',
+              }}
+            >
+              <CategoryButton label="了解详情" type="outline" href="#/detail" />
+              <CategoryButton label="免费试用" type="primary-outline" href="#/trial" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------- Popup Overlay：3 行标签云，左右虚化 + 第 1/3 行向右缓动 + 第 2 行向左缓动 ----------------------
+const PopupOverlay: React.FC<{ tab: SolutionTab }> = ({ tab }) => {
+  // 复制两份用于无缝循环
+  const animStyle = `
+    @keyframes rowSlideLeft {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @keyframes rowSlideRight {
+      0%   { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+  `;
+
+  const renderRow = (items: string[], key: string, direction: 'left' | 'right', duration: number) => {
+    const doubled = [...items, ...items];
+    return (
+      <div
+        key={key}
+        style={{
+          position: 'relative',
+          width: '100%',
+          overflow: 'hidden',
+          padding: '10px 0',
+          maskImage:
+            'linear-gradient(to right, transparent 0, rgba(0,0,0,1) 120px, rgba(0,0,0,1) calc(100% - 120px), transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent 0, rgba(0,0,0,1) 120px, rgba(0,0,0,1) calc(100% - 120px), transparent 100%)',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            columnGap: '20px',
+            flexWrap: 'nowrap',
+            animation:
+              direction === 'left'
+                ? `rowSlideLeft ${duration}s linear infinite`
+                : `rowSlideRight ${duration}s linear infinite`,
+            willChange: 'transform',
+          }}
+        >
+          {doubled.map((name, i) => (
+            <SmallCard key={`${key}-${name}-${i}`} name={name} />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <style>{animStyle}</style>
+      <div
+        style={{
+          width: '1440px',
+          minHeight: '262px',
+          padding: '20px 0',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'stretch',
+          rowGap: '12px',
+        }}
+      >
+        {/* 第 1 行：向右缓动 */}
+        {renderRow(tab.cloudRow1, 'r1', 'right', 45)}
+        {/* 中间：向左缓动 */}
+        {renderRow(tab.cloudRow2, 'r2', 'left', 55)}
+        {/* 第 3 行：向右缓动 */}
+        {renderRow(tab.cloudRow3, 'r3', 'right', 50)}
+      </div>
+    </>
+  );
+};
+
+// ---------------------- Popup 小卡片（Frame 48 hover 切换） ----------------------
+const SmallCard: React.FC<{ name: string }> = ({ name }) => {
+  const [hovered, setHovered] = useState(false);
+  const c = getTagColor(name);
+  // 默认态 popupSymbol：圆角 16, #D3ECFF 背景 + icon + 文字
+  // Frame 48 hover：加阴影 + 深色底/强调色（保持马卡龙色，背景略深一点并加阴影）
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        columnGap: '12px',
+        borderRadius: '16px',
+        background: hovered ? c.bg : c.bg, // 马卡龙底色与业态一致
+        padding: '10px 20px',
+        height: '56px',
+        boxSizing: 'border-box',
+        whiteSpace: 'nowrap',
+        boxShadow: hovered ? '0px 2px 8px 0px rgba(13, 153, 255, 0.18)' : 'none',
+        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+        border: `1px solid ${hovered ? c.border : 'transparent'}`,
+        transition: 'all 200ms ease',
+        cursor: 'pointer',
+        flexShrink: 0,
+      }}
+    >
+      {/* popupSymbol 图标 (SVG, 替换源：mq4xnkiw-jshyjf2 / picture) */}
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          borderRadius: '8px',
+          background: 'rgba(255,255,255,0.7)',
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        <IconFlagSVG color={c.text} />
+      </span>
+      <p
+        style={{
+          margin: 0,
+          lineHeight: '29px',
+          letterSpacing: 0,
+          color: hovered ? c.text : c.text,
+          fontFamily: FONT_FAMILY,
+          fontSize: '20px',
+          fontWeight: hovered ? 500 : 400,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {name}
+      </p>
+    </div>
   );
 };
 

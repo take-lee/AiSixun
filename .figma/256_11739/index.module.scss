@@ -2,15 +2,15 @@
   box-sizing: border-box;
 }
 
-.bannerDetail {
+.banner {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  background: #f5f6f7;
   padding: 70px 240px 70px 0px;
   width: 1920px;
   height: 700px;
   overflow: hidden;
+  background-image: linear-gradient(180deg, #d9e8ff 0%, #d9e8ff4d 100%);
 
   .bannerContainer {
     display: flex;

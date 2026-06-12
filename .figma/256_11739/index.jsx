@@ -4,7 +4,7 @@ import styles from './index.module.scss';
 
 const Component = () => {
   return (
-    <div className={styles.bannerDetail}>
+    <div className={styles.banner}>
       <div className={styles.bannerContainer}>
         <div className={styles.bg}>
           <div className={styles.frame85}>
@@ -78,7 +78,7 @@ const Component = () => {
           <div className={styles.paginationDot} />
           <div className={styles.paginationDot2} />
         </div>
-        <img src="../image/mpqmzmtj-16xlme6.svg" className={styles.mainContainer} />
+        <img src="../image/mpxj0e0o-1bvdzpn.svg" className={styles.mainContainer} />
       </div>
     </div>
   );
